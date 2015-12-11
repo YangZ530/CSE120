@@ -29,7 +29,6 @@ public class VMProcess extends UserProcess {
 	 * <tt>UThread.restoreState()</tt>.
 	 */
 	public void restoreState() {
-		super.restoreState();
 	}
 
 	/**
@@ -60,11 +59,43 @@ public class VMProcess extends UserProcess {
 		Processor processor = Machine.processor();
 
 		switch (cause) {
+		case Processor.exceptionTLBMiss:
+			handleTLBMiss();
+			break;
 		default:
 			super.handleException(cause);
 			break;
 		}
 	}
+
+	private void handleTLBMiss(){
+		Processor processor = Machine.processor();
+
+		int vaddr = processor.readRegister(Processor.regBadVaddr);
+		int vpn = Processor.pageFromAddress(vaddr);
+		TranslationEntry entry = pageTable[vpn];
+
+		int TLBSize = processor.getTLBSize();
+		int i;
+		for(i = 0; i < TLBSize; i++){
+			TLBEntry = processor.readTLBEntry(i);
+			if(!TLBEntry.valid){
+				//write to this entry
+				processor.writeTLBEntry(i, entry);
+				return;
+			}
+		}
+		i = Lib.randrom(TLBSize);
+		//todo: evict page i
+		TLBEntry = processor.readTLBEntry(i);
+		vpn = TLBEntry.vpn;
+		pageTable[vpn] = TLBEntry; //update original PTE
+
+		processor.writeTLBEntry(i, entry); //overwrite TLB entry
+		return;
+	}
+
+	protected TranslationEntry TLBEntry;
 
 	private static final int pageSize = Processor.pageSize;
 
