@@ -21,7 +21,15 @@ public class VMProcess extends UserProcess {
 	 * Called by <tt>UThread.saveState()</tt>.
 	 */
 	public void saveState() {
-		super.saveState();
+		Processor processor = Machine.processor();
+		TranslationEntry TLBEntry;
+		int vpn;
+		for(int i = 0; i < processor.getTLBSize(); i++){
+			TLBEntry = processor.readTLBEntry(i);
+			vpn = TLBEntry.vpn;
+			pageTable[vpn] = TLBEntry; // sync
+			TLBEntry.valid = 0; // invalidate
+		}
 	}
 
 	/**
@@ -86,10 +94,10 @@ public class VMProcess extends UserProcess {
 			}
 		}
 		i = Lib.randrom(TLBSize);
-		//todo: evict page i
+		//evict page i
 		TLBEntry = processor.readTLBEntry(i);
 		vpn = TLBEntry.vpn;
-		pageTable[vpn] = TLBEntry; //update original PTE
+		pageTable[vpn] = TLBEntry; //sync with PTE
 
 		processor.writeTLBEntry(i, entry); //overwrite TLB entry
 		return;
