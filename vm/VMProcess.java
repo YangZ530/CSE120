@@ -27,7 +27,7 @@ public class VMProcess extends UserProcess {
 		for(int i = 0; i < processor.getTLBSize(); i++){
 			TLBEntry = processor.readTLBEntry(i);
 			vpn = TLBEntry.vpn;
-			pageTable[vpn] = TLBEntry; // sync
+			pageTable[vpn] = new TranslationEntry(TLBEntry); // sync
 			TLBEntry.valid = false; // invalidate
 		}
 	}
@@ -94,10 +94,10 @@ public class VMProcess extends UserProcess {
 			}
 		}
 		i = Lib.random(TLBSize);
-		//evict page i
+		//evict victim page
 		TLBEntry = processor.readTLBEntry(i);
 		vpn = TLBEntry.vpn;
-		pageTable[vpn] = TLBEntry; //sync with PTE
+		pageTable[vpn] = new TranslationEntry(TLBEntry); //sync with PTE
 
 		processor.writeTLBEntry(i, entry); //overwrite TLB entry
 		return;
