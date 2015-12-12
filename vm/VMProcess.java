@@ -28,7 +28,7 @@ public class VMProcess extends UserProcess {
 			TLBEntry = processor.readTLBEntry(i);
 			vpn = TLBEntry.vpn;
 			pageTable[vpn] = TLBEntry; // sync
-			TLBEntry.valid = 0; // invalidate
+			TLBEntry.valid = false; // invalidate
 		}
 	}
 
@@ -79,7 +79,7 @@ public class VMProcess extends UserProcess {
 	private void handleTLBMiss(){
 		Processor processor = Machine.processor();
 
-		int vaddr = processor.readRegister(Processor.regBadVaddr);
+		int vaddr = processor.readRegister(Processor.regBadVAddr);
 		int vpn = Processor.pageFromAddress(vaddr);
 		TranslationEntry entry = pageTable[vpn];
 
@@ -93,7 +93,7 @@ public class VMProcess extends UserProcess {
 				return;
 			}
 		}
-		i = Lib.randrom(TLBSize);
+		i = Lib.random(TLBSize);
 		//evict page i
 		TLBEntry = processor.readTLBEntry(i);
 		vpn = TLBEntry.vpn;
