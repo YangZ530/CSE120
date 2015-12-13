@@ -1,12 +1,23 @@
 package nachos.userprog;
 
-import nachos.machine.*;
-import nachos.threads.*;
-import nachos.userprog.*;
-
 import java.io.EOFException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+
+import nachos.machine.Coff;
+import nachos.machine.CoffSection;
+import nachos.machine.Kernel;
+import nachos.machine.Lib;
+import nachos.machine.Machine;
+import nachos.machine.OpenFile;
+import nachos.machine.Processor;
+import nachos.machine.TranslationEntry;
+import nachos.threads.KThread;
+import nachos.threads.Lock;
+import nachos.threads.ThreadedKernel;
+import nachos.threads.*;
 
 /**
  * Encapsulates the state of a user process that is not contained in its
@@ -358,7 +369,7 @@ public class UserProcess {
 	// allocate memory
 	UserKernel.memoryLock.acquire();
 
-	if (UserKernel.freePages.size() < numPages) {
+	if (UserKernel.freePPages.size() < numPages) {
 	    UserKernel.memoryLock.release();
 	    coff.close();
 	    Lib.debug(dbgProcess, "\tinsufficient physical memory");
@@ -368,7 +379,7 @@ public class UserProcess {
 	pageTable = new TranslationEntry[numPages];
 
 	for (int vpn=0; vpn<numPages; vpn++) {
-	    int ppn = ((Integer)UserKernel.freePages.removeFirst()).intValue();
+	    int ppn = ((Integer)UserKernel.freePPages.removeFirst()).intValue();
 
 	    pageTable[vpn] = new TranslationEntry(vpn, ppn,
 						  true, false, false, false);
@@ -399,7 +410,7 @@ public class UserProcess {
      */
     protected void unloadSections() {
         for (int vpn=0; vpn<pageTable.length; vpn++)
-	    UserKernel.freePages.add(new Integer(pageTable[vpn].ppn));
+	    UserKernel.freePPages.add(new Integer(pageTable[vpn].ppn));
     }    
 
     /**
@@ -561,7 +572,7 @@ public class UserProcess {
 	return fileDescriptor;
     }
 
-    private int handleRead(int fileDescriptor, int vaddrBuffer, int length) {
+    protected int handleRead(int fileDescriptor, int vaddrBuffer, int length) {
 	if (fileDescriptor<0 || fileDescriptor>=maxFiles)
 	    return -1;
 	if (length<0)
@@ -594,7 +605,7 @@ public class UserProcess {
 	return total;
     }
 
-    private int handleWrite(int fileDescriptor, int vaddrBuffer, int length) {
+    protected int handleWrite(int fileDescriptor, int vaddrBuffer, int length) {
 	if (fileDescriptor<0 || fileDescriptor>=maxFiles)
 	    return -1;
 	if (length<0)

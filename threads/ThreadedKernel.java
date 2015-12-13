@@ -1,6 +1,10 @@
 package nachos.threads;
 
-import nachos.machine.*;
+import nachos.machine.Config;
+import nachos.machine.FileSystem;
+import nachos.machine.Kernel;
+import nachos.machine.Lib;
+import nachos.machine.Machine;
 
 /**
  * A multi-threaded OS kernel.
@@ -50,7 +54,7 @@ public class ThreadedKernel extends Kernel {
 		Semaphore.selfTest();
 		SynchList.selfTest();
 		if (Machine.bank() != null) {
-			ElevatorBank.selfTest();
+			//ElevatorBank.selfTest();
 		}
 	}
 

@@ -1,10 +1,14 @@
 package nachos.userprog;
 
-import nachos.machine.*;
-import nachos.threads.*;
-import nachos.userprog.*;
-
 import java.util.LinkedList;
+
+import nachos.machine.Coff;
+import nachos.machine.Lib;
+import nachos.machine.Machine;
+import nachos.machine.Processor;
+import nachos.threads.KThread;
+import nachos.threads.Lock;
+import nachos.threads.ThreadedKernel;
 
 /**
  * A kernel that can support multiple user processes.
@@ -34,7 +38,7 @@ public class UserKernel extends ThreadedKernel {
 	
 	memoryLock = new Lock();	
 	for (int ppn=0; ppn<Machine.processor().getNumPhysPages(); ppn++)
-	    freePages.add(new Integer(ppn));
+	    freePPages.add(new Integer(ppn));
     }
 
     /**
@@ -115,6 +119,22 @@ public class UserKernel extends ThreadedKernel {
 	super.terminate();
     }
 
+    public int findFreePages() {
+    PPLock.acquire();
+    int num = freePPages.removeFirst();
+    PPLock.release();
+    return num;
+  }
+
+    public int freePagesNum() {
+    PPLock.acquire();
+    int num = freePPages.size();
+    PPLock.release();
+    return num;
+  }
+	
+
+
     /** Globally accessible reference to the synchronized console. */
     public static SynchConsole console;
     /** Guards access to process data: lists, exit status tables, etc. */
@@ -126,8 +146,10 @@ public class UserKernel extends ThreadedKernel {
 
     /** Guards access to the physical page free list. */
     public static Lock memoryLock;
+
+    protected Lock PPLock;
     /** The physical page free list. */
-    public static LinkedList freePages = new LinkedList();
+    public static LinkedList<Integer> freePPages;
 
     // dummy variables to make javac smarter
     private static Coff dummy1 = null;
